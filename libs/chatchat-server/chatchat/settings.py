@@ -21,6 +21,17 @@ XF_MODELS_TYPES = {
     "text2speech": {"model_family": ["ChatTTS"]},
 }
 
+class LLMSettings(BaseSettings):
+    MODEL_NAME: str = "deepseek-chat"  # 或其他模型
+    API_BASE_URL: str = "https://api.deepseek.com/v1" # https://api.openai.com/v1"  # 或其他API端点
+    API_KEY: str = "your-api-key"  # 实际使用时从环境变量获取
+    
+    class Config:
+        env_prefix = "LLM_"
+
+class Settings:
+    # ...existing code...
+    llm_settings = LLMSettings()
 
 class BasicSettings(BaseFileSettings):
     """
@@ -241,6 +252,10 @@ class KBSettings(BaseFileSettings):
                     ("###", "head3"),
                     ("####", "head4"),
                 ]
+            },
+            "LLMSemanticTextSplitter": {
+                "source": "custom",
+                "tokenizer_name_or_path": None,
             },
         }
     """

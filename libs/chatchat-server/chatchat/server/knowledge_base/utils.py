@@ -222,6 +222,17 @@ def make_text_splitter(splitter_name, chunk_size, chunk_overlap):
     """
     根据参数获取特定的分词器
     """
+    if splitter_name == "LLMSemanticTextSplitter":
+        from chatchat.server.file_rag.text_splitter import LLMSemanticTextSplitter
+        from chatchat.server.llm_api import get_llm  # 假设这是获取 LLM 实例的函数
+        
+        llm = get_llm()  # 获取 LLM 实例
+        return LLMSemanticTextSplitter(
+            llm=llm,
+            chunk_size=chunk_size,  # 这里的 chunk_size 可以用作参考值
+            chunk_overlap=chunk_overlap
+        )
+    
     splitter_name = splitter_name or "SpacyTextSplitter"
     try:
         if (

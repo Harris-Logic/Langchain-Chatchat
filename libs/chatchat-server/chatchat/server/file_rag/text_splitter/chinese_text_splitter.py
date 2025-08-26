@@ -1,8 +1,66 @@
 import re
 from typing import List
 
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.docstore.document import Document
 
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import TextSplitter
+
+class LLMSemanticTextSplitter(TextSplitter):
+    """基于 LLM 的语义分块器"""
+    
+    def __init__(self, llm, prompt_template: str = None, **kwargs):
+        """初始化
+        Args:
+            llm: 用于分块的语言模型
+            prompt_template: 分块提示模板
+        """
+        super().__init__(**kwargs)
+        self.llm = llm
+        self.prompt_template = prompt_template or """
+        请将以下文本分成多个语义完整的段落。每个段落应该是一个独立的语义单元。
+        分割规则：
+        1. 保持段落语义完整性
+        2. 避免将紧密关联的内容分开
+        3. 适当保持上下文
+        
+        文本内容：
+        {text}
+        
+        请按照以下格式输出分割结果：
+        <split>段落1</split>
+        <split>段落2</split>
+        ...
+        """
+
+    def split_text(self, text: str) -> List[str]:
+        """基于 LLM 进行语义分块"""
+        prompt = self.prompt_template.format(text=text)
+        response = self.llm.predict(prompt)
+        
+        # 解析 LLM 返回的分块结果
+        chunks = []
+        for chunk in response.split("<split>"):
+            if "</split>" in chunk:
+                chunk = chunk.split("</split>")[0].strip()
+                if chunk:
+                    chunks.append(chunk)
+        
+        return chunks or [text]
+
+    def split_documents(self, documents: List[Document]) -> List[Document]:
+        """对文档列表进行分块"""
+        splits = []
+        for doc in documents:
+            texts = self.split_text(doc.page_content)
+            for text in texts:
+                splits.append(
+                    Document(
+                        page_content=text,
+                        metadata=doc.metadata
+                    )
+                )
+        return splits
 
 class ChineseTextSplitter(CharacterTextSplitter):
     def __init__(self, pdf: bool = False, sentence_size: int = 250, **kwargs):
