@@ -21,6 +21,10 @@ XF_MODELS_TYPES = {
     "text2speech": {"model_family": ["ChatTTS"]},
 }
 
+# from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+
+
 class LLMSettings(BaseSettings):
     MODEL_NAME: str = "deepseek-chat"  # 或其他模型
     API_BASE_URL: str = "https://api.deepseek.com/v1" # https://api.openai.com/v1"  # 或其他API端点
